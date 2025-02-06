@@ -3,27 +3,27 @@
 
 using namespace std;
 
-struct FibonacciHeapNode {
+struct Node {
 public:
   int key;
-  FibonacciHeapNode *parent;
-  FibonacciHeapNode *child;
-  FibonacciHeapNode *left;
-  FibonacciHeapNode *right;
+  Node *parent;
+  Node *child;
+  Node *left;
+  Node *right;
   int degree;
   bool mark;
 
-  FibonacciHeapNode(int k)
+  Node(int k)
       : key(k), parent(nullptr), child(nullptr), left(this), right(this),
         degree(0), mark(false) {}
 };
 
 class FibonacciHeap {
 private:
-  FibonacciHeapNode *min_;
+  Node *min_;
   int count_;
 
-  void addRoot(FibonacciHeapNode *node) {
+  void addRoot(Node *node) {
     if (!min_) {
       min_ = node;
       node->left = node;
@@ -42,19 +42,19 @@ private:
     if (!min_)
       return;
 
-    vector<FibonacciHeapNode *> A(count_ + 1, nullptr);
-    vector<FibonacciHeapNode *> nodes;
+    vector<Node *> A(count_ + 1, nullptr);
+    vector<Node *> nodes;
 
-    FibonacciHeapNode *current = min_;
+    Node *current = min_;
     do {
       nodes.push_back(current);
       current = current->right;
     } while (current != min_);
 
-    for (FibonacciHeapNode *w : nodes) {
+    for (Node *w : nodes) {
       int d = w->degree;
       while (A[d] != nullptr) {
-        FibonacciHeapNode *y = A[d];
+        Node *y = A[d];
         if (w->key > y->key) {
           swap(w, y);
         }
@@ -68,7 +68,7 @@ private:
     }
 
     min_ = nullptr;
-    for (FibonacciHeapNode *a : A) {
+    for (Node *a : A) {
       if (a != nullptr) {
         if (!min_ || a->key < min_->key) {
           min_ = a;
@@ -77,7 +77,7 @@ private:
     }
   }
 
-  static void link(FibonacciHeapNode *y, FibonacciHeapNode *x) {
+  static void link(Node *y, Node *x) {
     y->left->right = y->right;
     y->right->left = y->left;
     y->parent = x;
@@ -96,7 +96,7 @@ private:
     y->mark = false;
   }
 
-  void cut(FibonacciHeapNode *x, FibonacciHeapNode *y) {
+  void cut(Node *x, Node *y) {
     if (x->right == x) {
       y->child = nullptr;
     } else {
@@ -110,8 +110,8 @@ private:
     x->mark = false;
   }
 
-  void cascadingCut(FibonacciHeapNode *y) {
-    if (FibonacciHeapNode *z = y->parent) {
+  void cascadingCut(Node *y) {
+    if (Node *z = y->parent) {
       if (!y->mark) {
         y->mark = true;
       } else {
@@ -126,8 +126,8 @@ public:
 
   ~FibonacciHeap() { delete[] min_; }
 
-  FibonacciHeapNode *insert(int key) {
-    FibonacciHeapNode *node = new FibonacciHeapNode(key);
+  Node *insert(int key) {
+    Node *node = new Node(key);
     if (!min_) {
       min_ = node;
     } else {
@@ -143,15 +143,15 @@ public:
     return node;
   }
 
-  FibonacciHeapNode *extractMin() {
+  Node *extractMin() {
     if (!min_)
       return nullptr;
 
-    FibonacciHeapNode *z = min_;
+    Node *z = min_;
     if (z->child) {
-      FibonacciHeapNode *child = z->child;
+      Node *child = z->child;
       do {
-        FibonacciHeapNode *next = child->right;
+        Node *next = child->right;
         addRoot(child);
         child->parent = nullptr;
         child = next;
@@ -174,12 +174,12 @@ public:
     return z;
   }
 
-  void decreaseKey(FibonacciHeapNode *x, int k) {
+  void decreaseKey(Node *x, int k) {
     if (k > x->key) {
       throw invalid_argument("New key is greater than current key");
     }
     x->key = k;
-    if (FibonacciHeapNode *y = x->parent; y && x->key < y->key) {
+    if (Node *y = x->parent; y && x->key < y->key) {
       cut(x, y);
       cascadingCut(y);
     }
@@ -189,7 +189,7 @@ public:
   }
 
   bool isEmpty() const { return min_ == nullptr; }
-  FibonacciHeapNode *getMin() const { return min_; }
+  Node *getMin() const { return min_; }
 };
 
 int main() {
@@ -199,14 +199,14 @@ int main() {
   heap.insert(3);
   heap.insert(2);
   heap.insert(1);
-  FibonacciHeapNode *min = heap.extractMin();
+  Node *min = heap.extractMin();
   cout << "Extracted min: " << (min ? min->key : -1) << endl; // Должно быть 1
 
-  FibonacciHeapNode *min2 = heap.extractMin();
+  Node *min2 = heap.extractMin();
   cout << "Extracted min: " << (min2 ? min2->key : -1) << endl; // Должно быть 1
 
   // Тест 2: Уменьшение ключа
-  FibonacciHeapNode *node = heap.insert(5);
+  Node *node = heap.insert(5);
   heap.insert(4);
   heap.decreaseKey(node, 0);
   min = heap.extractMin();
