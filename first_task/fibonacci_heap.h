@@ -19,6 +19,8 @@ private:
   int degree;
   bool mark;
 
+  void clearChildren();
+
   friend class DoublyLinkedList;
   friend class FibonacciHeap;
 };

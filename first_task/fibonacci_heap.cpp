@@ -8,7 +8,7 @@ Node::Node(const int k) : key(k), parent(nullptr), degree(0), mark(false) {
 }
 
 Node::~Node() {
-  children.clear();
+  clearChildren();
 }
 
 int Node::getKey() const {
@@ -17,6 +17,13 @@ int Node::getKey() const {
 
 void Node::setKey(int k) {
   key = k;
+}
+
+void Node::clearChildren() {
+  for (Node* child : children) {
+    delete child;
+  }
+  children.clear();
 }
 
 // ----------------------- ListNode Implementation -----------------------
@@ -118,8 +125,7 @@ FibonacciHeap::FibonacciHeap() : count_(0) {
 FibonacciHeap::~FibonacciHeap() = default;
 
 void FibonacciHeap::insert(const int key) {
-  Node* newNode = new Node(key);
-  list_.append(newNode);
+  list_.append(new Node(key));
   count_++;
 }
 
