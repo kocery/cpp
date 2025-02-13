@@ -2,7 +2,7 @@
 #define FIBONACCI_HEAP_H
 
 #include <list>
-#include <memory>
+#include <optional>
 
 class Node {
 public:
@@ -10,7 +10,10 @@ public:
   ~Node();
 
   int getKey() const;
+  int getDegree() const;
   void setKey(int k);
+  static void link(Node* x, Node* y);
+  void clearChildren();
 
 private:
   int key;
@@ -19,16 +22,16 @@ private:
   int degree;
   bool mark;
 
-  void clearChildren();
+
 
   friend class DoublyLinkedList;
-  friend class FibonacciHeap;
 };
 
 class ListNode {
 public:
   ListNode(Node* value);
   ~ListNode();
+  Node* getData() const;
 
 private:
   Node* data;
@@ -48,11 +51,14 @@ public:
   void deleteNode(ListNode* node);
   ListNode* getMinNode() const;
   bool isEmpty() const;
+  Node& extractNode(ListNode& node);
 
 private:
   ListNode* head;
   ListNode* tail;
   ListNode* minNode;
+
+  void clear();
 
   friend class FibonacciHeap;
 };
@@ -63,7 +69,7 @@ public:
   ~FibonacciHeap();
 
   void insert(int key);
-  std::unique_ptr<Node> extractMin();
+  std::optional<int> extractMin();
   bool isEmpty() const;
   Node* getMin() const;
 
