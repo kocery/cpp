@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include "fibonacci_heap.h"
+#include <iostream>
+#include <ostream>
 
 // Test inserting values into the Fibonacci Heap
 TEST(FibonacciHeapTest, Insert) {
@@ -14,13 +16,15 @@ TEST(FibonacciHeapTest, Insert) {
 // Test extracting the minimum element
 TEST(FibonacciHeapTest, ExtractMin) {
   FibonacciHeap heap;
-  heap.insert(10);
+  heap.insert(1);
+  heap.insert(2);
+  heap.insert(3);
+  heap.insert(4);
   heap.insert(5);
-  heap.insert(20);
 
   const auto minNode = heap.extractMin();
-  EXPECT_EQ(minNode, 5); // Should extract 5
-  EXPECT_EQ(heap.getMin()->getKey(), 10); // Next min should be 10
+  EXPECT_EQ(minNode, 1); // Should extract 1
+  EXPECT_EQ(heap.getMin()->getKey(), 2); // Next min should be 2
 }
 
 // Test inserting multiple elements and extracting them

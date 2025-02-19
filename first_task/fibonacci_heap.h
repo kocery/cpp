@@ -13,7 +13,6 @@ public:
   int getDegree() const;
   void setKey(int k);
   static void link(Node* x, Node* y);
-  void clearChildren();
 
 private:
   int key;
@@ -21,8 +20,6 @@ private:
   std::list<Node*> children;
   int degree;
   bool mark;
-
-
 
   friend class DoublyLinkedList;
 };
@@ -48,10 +45,10 @@ public:
   ~DoublyLinkedList();
 
   void append(Node* node);
-  void deleteNode(ListNode* node);
+  void deleteNode(const ListNode* node);
   ListNode* getMinNode() const;
   bool isEmpty() const;
-  Node& extractNode(ListNode& node);
+  void extractNode(const ListNode* node);
 
 private:
   ListNode* head;
@@ -75,7 +72,7 @@ public:
 
 private:
   void consolidate();
-  void link(ListNode* y, ListNode* x);
+  void link(ListNode* y, const ListNode* x);
 
   DoublyLinkedList list_;
   int count_;

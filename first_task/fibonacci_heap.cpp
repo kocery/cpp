@@ -4,11 +4,14 @@
 
 // ----------------------- Node Implementation -----------------------
 
-Node::Node(const int k) : key(k), parent(nullptr), degree(0), mark(false) {
+Node::Node(const int k) : key(k), parent(nullptr), degree(1), mark(false) {
 }
 
 Node::~Node() {
-   clearChildren();
+  for (const Node* child : children) {
+    delete child;
+  }
+  children.clear();
 }
 
 int Node::getKey() const {
@@ -19,22 +22,14 @@ int Node::getDegree() const {
   return degree;
 }
 
-void Node::setKey(int k) {
+void Node::setKey(const int k) {
   key = k;
 }
 
-void Node::link(Node *x, Node *y) {
-  y->parent = x; // Set parent
-  x->children.push_back(y); // Add as child
-  x->degree++; // Increase degree
-}
-
-
-void Node::clearChildren() {
-  for (Node* child : children) {
-    delete child;
-  }
-  children.clear();
+void Node::link(Node* x, Node* y) {
+  y->parent = x;
+  x->children.push_back(y);
+  x->degree += y->degree;
 }
 
 // ----------------------- ListNode Implementation -----------------------
@@ -54,16 +49,17 @@ DoublyLinkedList::DoublyLinkedList() : head(nullptr), tail(nullptr), minNode(nul
 }
 
 DoublyLinkedList::~DoublyLinkedList() {
-  ListNode* current = head;
+  const ListNode* current = head;
   while (current) {
-    ListNode* next = current->next;
+    const ListNode* next = current->next;
+    delete current->data;
     delete current;
     current = next;
   }
 }
 
 void DoublyLinkedList::append(Node* node) {
-  ListNode* newNode = new ListNode(node);
+  const auto newNode = new ListNode(node);
   if (!head || !tail || !minNode) {
     head = newNode;
     tail = newNode;
@@ -80,8 +76,8 @@ void DoublyLinkedList::append(Node* node) {
   }
 }
 
-void DoublyLinkedList::deleteNode(ListNode* node) {
-  if (!node || !node->data) return;
+void DoublyLinkedList::deleteNode(const ListNode* node) {
+  if (!node || !node->data) {return;}
 
   for (Node* child : node->data->children) {
     if (child) {
@@ -89,8 +85,9 @@ void DoublyLinkedList::deleteNode(ListNode* node) {
       append(child);
     }
   }
+  node->data->children.clear();
 
-  extractNode(*node);
+  extractNode(node);
 
   if (node == minNode) {
     minNode = head;
@@ -115,18 +112,18 @@ bool DoublyLinkedList::isEmpty() const {
   return head == nullptr;
 }
 
-Node& DoublyLinkedList::extractNode(ListNode& node) {
-  if (&node == head) {
-    head = node.next;
-    if (head) head->prev = nullptr;
-  } else if (&node == tail) {
-    tail = node.prev;
-    if (tail) tail->next = nullptr;
-  } else {
-    if (node.prev) node.prev->next = node.next;
-    if (node.next) node.next->prev = node.prev;
+void DoublyLinkedList::extractNode(const ListNode* node) {
+  if (node == head) {
+    head = node->next;
+    if (head) {head->prev = nullptr;}
   }
-  return *node.data;
+  if (node == tail) {
+    tail = node->prev;
+    if (tail) {tail->next = nullptr;}
+  } else {
+    if (node->prev) node->prev->next = node->next;
+    if (node->next) node->next->prev = node->prev;
+  }
 }
 
 void DoublyLinkedList::clear() {
@@ -140,24 +137,17 @@ void DoublyLinkedList::clear() {
 FibonacciHeap::FibonacciHeap() : count_(0) {
 }
 
-FibonacciHeap::~FibonacciHeap() {
-  ListNode* current = list_.head;
-  while (current) {
-    delete current->data;
-    current = current->next;
-  }
-};
+FibonacciHeap::~FibonacciHeap() = default;
 
 void FibonacciHeap::insert(const int key) {
-  Node* newNode = new Node(key);
-  list_.append(newNode);
+  list_.append(new Node(key));
   count_++;
 }
 
 std::optional<int> FibonacciHeap::extractMin() {
   if (isEmpty()) return std::nullopt;
 
-  ListNode* min = list_.getMinNode();
+  const ListNode* min = list_.getMinNode();
   int out = min->data->getKey();
 
   count_--;
@@ -171,55 +161,39 @@ bool FibonacciHeap::isEmpty() const {
 }
 
 Node* FibonacciHeap::getMin() const {
-  ListNode* minNode = list_.getMinNode();
+  const ListNode* minNode = list_.getMinNode();
   return (minNode && minNode->data) ? minNode->data : nullptr;
 }
 
 void FibonacciHeap::consolidate() {
   if (count_ <= 1) { return; }
-  int maxDegree = static_cast<int>(log2(count_));
-  std::vector<ListNode*> A(2*maxDegree + 1, nullptr);
+  std::vector<ListNode*> A(count_ + 1, nullptr);
 
   ListNode* current = list_.head;
-  std::vector<ListNode*> roots;
 
-  // Store all root nodes in a separate vector to avoid modifying the list while iterating
-  while (current) {
-    roots.push_back(current);
-    current = current->next;
-  }
-
-  for (ListNode* node: roots) {
-    if (!node || !node->data) continue;
-
-    ListNode* x = node;
-    int d = x->data->getDegree();
+  while (current && current->data) {
+    int d = current->data->getDegree() - 1;
 
     // Merge trees of the same degree
     while (A[d]) {
       ListNode* y = A[d];
-      if (y->data->getKey() < x->data->getKey()) {
-        std::swap(y, x);
+      if (y->data->getKey() < current->data->getKey()) {
+        std::swap(current, y);
       }
-      link(y, x);
+      link(y, current);
       A[d] = nullptr;
       d++;
     }
-    A[d] = x;
+    A[d] = current;
+    current = current->next;
   }
-
-  // Rebuild the root list and find the new minNode
-  list_.clear();
-
-  for (ListNode* node: A) {
-    if (node) {
-      list_.append(node->data);
-    }
-  }
+  A.clear();
 }
 
-void FibonacciHeap::link(ListNode* y, ListNode* x) {
+void FibonacciHeap::link(ListNode* y, const ListNode* x) {
   // Remove y from the root list without deleting it and link two nodes
-  list_.extractNode(*y);
+  list_.extractNode(y);
   Node::link(x->data, y->data);
+  y->data = nullptr;
+  delete y;
 }

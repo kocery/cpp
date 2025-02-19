@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/refs/tags/v1.16.0.zip
+)
+FetchContent_MakeAvailable(googletest)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_COMPILER clang++)
 
@@ -25,5 +32,4 @@ if(CHECK_COVERAGE)
 endif()
 
 enable_testing()
-add_subdirectory(googletest)
 target_link_libraries(${PROJECT_NAME} gtest_main)
